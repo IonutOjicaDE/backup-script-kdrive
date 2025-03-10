@@ -1,152 +1,86 @@
 
 ![Backup Script](https://send.papamica.fr/f.php?h=3Ms9ymej&p=1)
 
-[![fr](https://img.shields.io/badge/lang-fr-blue.svg)](https://github.com/PAPAMICA/Backup-Script/blob/master/README_FR.md)
+[![ro(https://img.shields.io/badge/lang-ro-blue.svg)](https://github.com/PAPAMICA/Backup-Script/blob/master/README_RO.md)
 
 # Presentation
-BackupScript is a bash script that allows you to backup a Linux server or machine directly in Infomaniak's kDrive and/or SwissBackup. It can also use other Rclone configurations for backup destinations.
-It natively includes support for Zabbix and Grafana as well as Discord notifications.
-![Dashboard Grafana](https://send.papamica.fr/f.php?h=0eBOcqx2&p=1)
+BackupScript is a bash script that allows you to backup a Linux server or machine directly in Infomaniak's kDrive.
 
 # Prerequisites
-Install the necessary packages with the following commands:
+At the first run use `--install` so the script can install the requirements needed for the script to run (curl and rclone):
 ```sh
-apt install -y mariadb-client pv curl zabbix-sender jq bc
-curl https://rclone.org/install.sh | sudo bash
+./backup-script.sh --install
 ```
-If you use Notifications : 
-```sh
-apt install -y python3-pip
-pip install apprise
-```
+
 # Configuration
+You must customize following lines in the script file `backup-script.sh` :
 
-You must modify 2 lines in the file `backup-script.sh` :
-Line 12: configure the path of your configuration file
+Configure the path of the folder to backup:
 ```sh
-FILE_CONF="/apps/Backup-Script/backup-script.conf" # Config file
+20  SOURCE="/srv/dev-disk-by-uuid-$(blkid -s UUID -o value /dev/sdX)" # Source folder to backup // replace /dev/sdX with your disk identifier
 ```
 
-Line 19: If you are not using Zabbix, comment it out, otherwise enter the information `<ZABBIX_SERVER>` and `<HOST_ZABBIX>` without the `<>`
+Configure the destination folder on kdrive for the Backup and also for the old files:
 ```sh
-zabbix_sender -z "<ZABBIX_SERVER>" -s "<HOST_ZABBIX>" -k "backup.status" -o "1"
+21 DESTINATION="kDrive:/Backup" # Folder on kDrive where to store backups
+22 OLD="kDrive:/Old"            # Folder on kDrive where to store old versions
 ```
 
-All others parameters must be filled in the file `backup-script.conf` :
-
-## General
-| VARIABLE | DESCRIPTION |
-|--|--|
-| DATE | Configure the date format |
-| HOUR | Configure the time format |
-| WORKFOLDER | Configure the working directory (to be excluded from the backup) |
-| SERVER_NAME | Configure the server name for the backup folder |
-| BACKUPFOLDER | Configure the name of the folder containing the backup |
-| KDRIVE | `yes/no` Enable the kDrive configuration |
-| SWISS_BACKUP | `yes/no` Enable the configuration of Swiss Backup |
-| ZABBIX | `yes/no` Enable monitoring with Zabbix |
-| DISCORD |  `yes/no` Enable Discord notifications |
-| DOCKER | `yes/no` Enables dump and backup of containerized databases |
-| FOLDERS | Configure the list of folders to back up |
-| EXCLUDE_FOLDERS | Configure the list of folders to exclude from backup |
-| EXCLUDE_EXTENSIONS | Configure the list of extensions to exclude from the backup |
-| RETENTION_DAYS | Number of days before objects are deleted from Swiss Backup |
-| SEGMENT_SIZE | Block size for Swiss Backup |
+Configure how many backup versions to keep still on the cloud, before the files will be completely deleted by the script (these files may be still be available from kdrive backup and after another 60 days will be completelly deleted; please consult kdrive for the exact keeping period after the files are deleted):
+```sh
+24 VERSIONS=16                  # Number of backup versions to keep on cloud
+```
 
 ## kDrive
-| VARIABLE | DESCRIPTION |
-|--|--|
-| kd_user | Your Infomaniak ID |
-| kd_pass | The application password created for the script |
-| kd_folder | The path to your backup files in your kDrive |
-
-**Liens utiles :**
-kDrive : https://www.infomaniak.com/fr/kdrive
-Application password : https://manager.infomaniak.com/v3/profile/application-password
-
-## Swiss Backup
-Il all you have to do is put the parameters that you retrieve in the Rclone file by email when creating the device in Swiss Backup.
-| VARIABLE | DESCRIPTION |
-|--|--|
-| SB_QUOTA | Configure the maximum quota of your Swiss Backup (in go) |
-
-**Liens utiles :**
-Swiss Backup : https://www.infomaniak.com/en/swiss-backup
-
-## Rclone
-If you want to use the script with a destination other than kDrive or Swiss Backup, you can! You just have to create the configurations in Rclone and put their name in the following variable:
-| VARIABLE | DESCRIPTION |
-|--|--|
-| RCLONE_CONFIGS | Rclone configurations to use (separated by spaces) |
-
-**Liens utiles :**
-Rclone : https://rclone.org
-
-## Zabbix
-| VARIABLE | DESCRIPTION |
-|--|--|
-| ZABBIX_SENDER | Link to zabbix_sender binary |
-| ZABBIX_HOST | The name of your HOST in the Zabbix server |
-| ZABBIX_SRV | The IP or DDNS of your Zabbix server |
-| ZABBIX_DATA | Location of Zabbix temporary data file |
-
-**Liens utiles :**
-Zabbix : https://www.zabbix.com
-Tutoriels : https://wiki-tech.io/fr/Supervision
-
-## Notifications
-| VARIABLE | DESCRIPTION |
-|--|--|
-| NOTIFIER | Check https://github.com/caronc/apprise#supported-notifications |
-
-**Liens utiles :**
-Discord : https://discord.com
-Configure Webhooks Discord : https://www.digitalocean.com/community/tutorials/how-to-use-discord-webhooks-to-get-notifications-for-your-website-status-on-ubuntu-18-04
-
-# Utilisation
-Clone the script on your machine: 
+Enter your kdrive credentials:
 ```sh
-git clone https://github.com/PAPAMICA/Backup-Script
+34 kd_user="" # Your Infomaniak's mail
+35 kd_pass="" # App's password : https://manager.infomaniak.com/v3/profile/application-password
+36 kd_folder="" # Exemple : "https://12345678.connect.kdrive.infomaniak.com" : https://www.infomaniak.com/en/support/faq/2409/connect-to-kdrive-via-webdav
+```
+
+# Usage
+Clone the script on your machine:
+```sh
+git clone https://github.com/IonutOjicaDE/backup-script-kdrive
 ```
 Go to the folder:
 ```sh
-cd Backup-Script
+cd backup-script-kdrive
 ```
-Edit the file `backup-script.conf` with your settings :
+Edit the file `backup-script.sh` with your settings:
 ```sh
-nano backup-script.conf
+nano backup-script.sh
 ```
-Run the script :
+Run the script:
 ```sh
 ./backup-script.sh
 ```
 
 ## Cronjob
-Start backup every day at 02h
+Start backup every Sunday at 01h
 ```sh
 crontab -e
-00 02 * * * /apps/Backup-Script/backup-script.sh >> /var/log/BackupScript.log
+00 01 * * 0 /your-folder/backup-script-kdrive/backup-script.sh
 ```
 
 ## The available settings
 ### Dry run
-With  `--dry-run` you can preview what the script will do before you run it.
-### List backup
-With `--list-backup <CONFIG_RCLONE>` you can list the backups available in your outsourced storage.
-### Zabbix send
-With `--zabbix-send` you can force the sending of the latest data collected to Zabbix.
-
-## Zabbix
-To use backup monitoring with Zabbix, you must import and assign the template to your host `Template_Zabbix_App_BackupScript.xml`.
-The first sending of data can be long or failed, do not hesitate to renew with :
+With  `--dry-run` you can preview what the script will do before you run it. This is in any case very good for the first run.
 ```sh
-./backup-script.sh --zabbix-send
+./backup-script.sh --dry-run
 ```
-## Grafana
-You can import the template `Template_Grafana_BackupScript.json` directly in your Grafana instance.
-You will need to modify the variable `$SERVER` in order to use the template correctly.
+### Output in the shell
+With `--output` you can see all output on the command line and nothing will be written in the log file. This is in any case very good for the first run.
+```sh
+./backup-script.sh --dry-run --output
+```
+### Install the requirements
+With `--install` you can install the requirements needed for the script to run (curl and rclone). This is in any case very good for the first run.
+```sh
+./backup-script.sh --dry-run --output --install
+```
 
+🍓☕ If my work has been useful to you, do not hesitate to offer me a strawberry milk 😃
 
-If my work has been useful to you, do not hesitate to offer me a strawberry milk 😃
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/PAPAMICA)
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/ionutojica)
