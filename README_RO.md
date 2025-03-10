@@ -1,7 +1,8 @@
 
 ![Backup Script](https://send.papamica.fr/f.php?h=3Ms9ymej&p=1)
 
-[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/PAPAMICA/Backup-Script/blob/master/README.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/IonutOjicaDE/backup-script-kdrive/blob/master/README.md)
+
 # Prezentare
 BackupScript este un script bash care îți permite să faci backup unui server sau unei mașini Linux direct în kDrive-ul Infomaniak.
 
