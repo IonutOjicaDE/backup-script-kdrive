@@ -4,40 +4,64 @@
 [![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/IonutOjicaDE/backup-script-kdrive/blob/master/README.md)
 
 # Prezentare
-BackupScript este un script bash care îți permite să faci backup unui server sau unei mașini Linux direct în kDrive-ul Infomaniak.
+*BackupScript* este un script bash care îți permite să faci backup unui server sau al unei mașini Linux direct în kDrive-ul Infomaniak. *RestoreScript* este, de asemenea, un script bash care îți permite să restaurezi cel mai recent backup din kDrive pe serverul local.
 
 # Cerințe preliminare
 La prima rulare folosește `--install` pentru ca scriptul să poată instala cerințele necesare pentru a rula (curl și rclone):
 ```sh
 ./backup-script.sh --install
 ```
+sau
+```sh
+./restore-script.sh --install
+```
 
-# Configurare
+# Configurarea `backup-script.sh`
 Trebuie să personalizezi următoarele linii în fișierul script `backup-script.sh`:
 
 Configurează calea folderului de backup:
 ```sh
-20  SOURCE="/srv/dev-disk-by-uuid-$(blkid -s UUID -o value /dev/sdX)" # Folderul sursă pentru backup // înlocuiește /dev/sdX cu identificatorul discului tău
+19  SOURCE="/srv/dev-disk-by-uuid-$(blkid -s UUID -o value /dev/sdX)" # Folderul sursă pentru backup // înlocuiește /dev/sdX cu identificatorul discului tău
 ```
 
 Configurează folderul de destinație pe kDrive pentru Backup și, de asemenea, pentru fișierele vechi:
 ```sh
-21 DESTINATION="kDrive:/Backup" # Folderul pe kDrive unde se vor stoca backup-urile
-22 OLD="kDrive:/Old"            # Folderul pe kDrive unde se vor stoca versiunile vechi
+20 DESTINATION="kDrive:/Backup" # Folderul pe kDrive unde se vor stoca backup-urile
+21 OLD="kDrive:/Old"            # Folderul pe kDrive unde se vor stoca versiunile vechi
 ```
 
 Configurează câte versiuni de backup să fie păstrate pe cloud, înainte ca fișierele să fie complet șterse de script (aceste fișiere pot fi încă disponibile din backup-ul kDrive și după alte 60 de zile vor fi complet șterse; te rugăm să consulți kDrive pentru perioada exactă de păstrare după ce fișierele sunt șterse):
 ```sh
-24 VERSIONS=16                  # Numărul de versiuni de backup de păstrat pe cloud
+23 VERSIONS=5                   # Numărul de versiuni de backup de păstrat pe cloud
 ```
 
 ## kDrive
 Introdu credențialele tale kDrive:
 ```sh
-34 kd_user="" # Email-ul tău Infomaniak
-35 kd_pass="" # Parola aplicației: https://manager.infomaniak.com/v3/profile/application-password
-36 kd_folder="" # Exemplu: "https://12345678.connect.kdrive.infomaniak.com" : https://www.infomaniak.com/en/support/faq/2409/connect-to-kdrive-via-webdav
+35 kd_user="" # Email-ul tău Infomaniak
+36 kd_pass="" # Parola aplicației: https://manager.infomaniak.com/v3/profile/application-password
+37 kd_folder="" # Exemplu: "https://12345678.connect.kdrive.infomaniak.com" : https://www.infomaniak.com/en/support/faq/2409/connect-to-kdrive-via-webdav
 ```
+
+## Cont email pentru notificări
+În caz de erori, va fi trimis un email. Introdu adresa de email care va primi notificările, precum și credențialele SFTP ale adresei de email de la care vor fi trimise emailurile:
+```sh
+# adresa de email a administratorului, care va primi emailurile când apar erori
+45 TO_EMAIL='admin@'       # ex: admin@example.com
+
+# adresa de email care va trimite emailurile
+48 FROM_EMAIL='install@'   # ex: install@example.com
+# serverul și portul pentru conectare SMTP
+50 FROM_SERVER_PORT=':587' # ex: example.com:587
+# utilizatorul și parola pentru contul SMTP
+52 FROM_USER='install@'    # ex: install@example.com
+53 FROM_PASS=''            # ex: MfE4KrGf%fH7PsW2$
+```
+
+# Configurarea `restore-script.sh`
+Poți copia majoritatea liniilor de configurare din `backup-script.sh`.
+
+Atenție să introduci corect SOURCE și DESTINATION. La final, destinația va fi identică cu sursa. Sursa va rămâne intactă. Destinația va fi modificată, fără notificări sau avertismente suplimentare.
 
 # Utilizare
 Clonează scriptul pe sistemul tău:
