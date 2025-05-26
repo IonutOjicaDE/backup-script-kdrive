@@ -17,24 +17,24 @@
 ###############################################################################################
 
 SOURCE="/srv/dev-disk-by-uuid-$(blkid -s UUID -o value /dev/sdX)/OMV" # Source folder to backup // replace /dev/sdX with your disk identifier
-DESTINATION="kDrive:/Backup" # Folder on kDrive where to store backups
-OLD="kDrive:/Old"            # Folder on kDrive where to store old versions
-VERBOSE="-v"                 # Add more v's for more verbosity: -v = info, -vv = debug
+DESTINATION='kDrive:/Backup' # Folder on kDrive where to store backups
+OLD='kDrive:/Old'            # Folder on kDrive where to store old versions
+VERBOSE='-v'                 # Add more v's for more verbosity: -v = info, -vv = debug
 VERSIONS=5                   # Number of backup versions to keep on cloud
-LOG="/var/log/rclone.log"    # Local log file
-SPEED_LIMIT="5M"             # Speed limit for upload
-RETRIES="3"                  # Number of retries for each rclone command
-RETRIES_SLEEP="10s"          # Sleep time between retries
-SCRIPT_NAME="BackupScript"
+LOG='/var/log/rclone.log'    # Log file
+SPEED_LIMIT='5M'             # Speed limit for upload
+RETRIES='3'                  # Number of retries for each rclone command
+RETRIES_SLEEP='10s'          # Sleep time between retries
+SCRIPT_NAME='BackupScript'
 
 
 ###############################################################################################
 #####                                 KDRIVE CONFIGURATION                                #####
 ###############################################################################################
 
-kd_user="" # Your Infomaniak's mail
-kd_pass="" # App's password : https://manager.infomaniak.com/v3/profile/application-password
-kd_folder="" # Exemple : "https://12345678.connect.kdrive.infomaniak.com" : https://www.infomaniak.com/en/support/faq/2409/connect-to-kdrive-via-webdav
+kd_user=''   # Your Infomaniak's mail
+kd_pass=''   # App's password : https://manager.infomaniak.com/v3/profile/application-password
+kd_folder='' # Exemple : 'https://12345678.connect.kdrive.infomaniak.com' : https://www.infomaniak.com/en/support/faq/2409/connect-to-kdrive-via-webdav
 
 
 ###############################################################################################
@@ -57,21 +57,23 @@ FROM_PASS=''            # eg: MfE4KrGf%fH7PsW2$
 #####                                  show_info function                                 #####
 ###############################################################################################
 
-function show_info() { echo "[$(date +%Y-%m-%d_%H:%M:%S)]  ${SCRIPT_NAME}  ${1}" }
+function show_info() {
+  echo "[$(date +%Y-%m-%d_%H:%M:%S)]  ${SCRIPT_NAME}  ${1}"
+}
 
 
 ###############################################################################################
 #####                                  CHECK IF --dry-run                                 #####
 ###############################################################################################
 
-if [[ "$*" =~ "--dry-run" ]]; then
+if [[ "$*" =~ '--dry-run' ]]; then
   DRY='echo ['$(date +%Y-%m-%d_%H:%M:%S)']--${SCRIPT_NAME}--🚧--DRY RUN : [ '
   DRY2=' ]'
-  DRY_RUN="yes"
+  DRY_RUN='yes'
 else
-  DRY=""
-  DRY2=""
-  DRY_RUN="no"
+  DRY=''
+  DRY2=''
+  DRY_RUN='no'
 fi
 
 
@@ -79,11 +81,11 @@ fi
 #####                                  CHECK IF --output                                  #####
 ###############################################################################################
 
-if [[ ! "$*" =~ "--output" ]]; then
+if [[ ! "$*" =~ '--output' ]]; then
   # Check if the log file is writable (or can be created)
   if ! touch "$LOG" &> /dev/null; then
     show_info "❌  ERROR: Cannot write to log file: $LOG"
-    show_info "🛑  Please run the script as root or ensure write access."
+    show_info '🛑  Please run the script as root or ensure write access.'
     exit 1
   fi
 
@@ -102,15 +104,15 @@ LOCKFILE="/tmp/${SCRIPT_NAME%.sh}.lock"
 
 # Check if the script is already running
 if [ -f "$LOCKFILE" ]; then
-    old_pid=$(cat "$LOCKFILE")
-    if [ -d "/proc/$old_pid" ]; then
-        show_info "❌  ERROR: Script is already running with PID $old_pid."
-        show_info "🛑  Exiting to prevent multiple instances."
-        exit 1
-    else
-        show_info "⚠️  Stale lock found. Cleaning up..."
-        rm -f "$LOCKFILE"
-    fi
+  old_pid=$(cat "$LOCKFILE")
+  if [ -d "/proc/$old_pid" ]; then
+    show_info "❌  ERROR: Script is already running with PID $old_pid."
+    show_info '🛑  Exiting to prevent multiple instances.'
+    exit 1
+  else
+    show_info '⚠️  Stale lock found. Cleaning up...'
+    rm -f "$LOCKFILE"
+  fi
 fi
 
 # Create new lockfile with current PID
@@ -128,11 +130,11 @@ if [[ "$*" =~ "--install" ]]; then
   DEBIAN_FRONTEND=noninteractive apt -yq install sendemail
   DEBIAN_FRONTEND=noninteractive apt -yq install curl
   curl https://rclone.org/install.sh | sudo bash
-  show_info "✅  All requirements are installed."
-  echo ""
+  show_info '✅  All requirements are installed.'
+  echo ''
   printf '=%.0s' {1..100}
-  echo ""
-fi
+  echo ''
+}
 
 
 ###############################################################################################
@@ -185,27 +187,27 @@ EOL
 function Create-Rclone-Config-kDrive {
   RCLONE_CHECK_KDRIVE=$(rclone config show | grep kDrive)
   if [ -n "$RCLONE_CHECK_KDRIVE" ]; then
-    show_info "🌀  kDrive config already exist."
+    show_info '🌀  kDrive config already exist.'
   else
-    show_info "🌀  Create kDrive config for rclone."
+    show_info '🌀  Create kDrive config for rclone.'
     $DRY rclone config create kDrive webdav url "$kd_folder" vendor other user "$kd_user" $DRY2
     $DRY rclone config password kDrive pass "$kd_pass" $DRY2
-    if [[ $DRY_RUN == "yes" ]]; then
+    if [[ $DRY_RUN == 'yes' ]]; then
       $DRY Create Rclone config for kDrive $DRY2
     else
       RCLONE_CHECK_KDRIVE=$(rclone config show | grep kDrive)
       if [ -n "$RCLONE_CHECK_KDRIVE" ]; then
-        show_info "✅  kDrive config created for rclone."
+        show_info '✅  kDrive config created for rclone.'
       else
-        show_info "❌  ERROR : kDrive config didn't created, please check that !"
-        Send-Error-over-Email "❌  ERROR : kDrive config didn't created, please check that !"
+        show_info '❌  ERROR : kDrive config is not created, please check that !'
+        Send-Error-over-Email '❌  ERROR : kDrive config is not created, please check that !'
         exit 1
       fi
     fi
   fi
-  echo ""
+  echo ''
   printf '=%.0s' {1..100}
-  echo ""
+  echo ''
 }
 
 
@@ -218,21 +220,21 @@ function Check-Local-Source {
 
   if [ ! -d "$SOURCE" ]; then
     show_info "❌  ERROR: Source folder does not exist: $SOURCE"
-    show_info "🛑  It is possible that HDD is disconected. Exiting."
-    Send-Error-over-Email "🛑  It is possible that HDD is disconected. Exiting."
+    show_info '🛑  It is possible that HDD is disconected. Exiting.'
+    Send-Error-over-Email '🛑  It is possible that HDD is disconected. Exiting.'
     exit 1
   fi
 
   num_files=$(find "$SOURCE" -type f ! -path '*/.*' | wc -l)
   if [ "$num_files" -eq 0 ]; then
-    show_info "⚠️  WARNING: Source folder exist but it is empty."
-    show_info "❌  Possible that the HDD is damaged. Exiting."
-    Send-Error-over-Email "❌  Possible that the HDD is damaged. Exiting."
+    show_info '⚠️  WARNING: Source folder exist but it is empty.'
+    show_info '❌  Possible that the HDD is damaged. Exiting.'
+    Send-Error-over-Email '❌  Possible that the HDD is damaged. Exiting.'
     exit 1
   fi
 
-  show_info "✅  Local source found."
-  echo ""
+  show_info '✅  Local source found.'
+  echo ''
 }
 
 
@@ -243,19 +245,24 @@ function Check-Local-Source {
 function Purge-Oldest-Version {
   show_info "🌀   Purge oldest version ${VERSION} from kDrive started."
   if rclone lsd "${OLD}${VERSION}" > /dev/null 2>&1; then
-    $DRY nice rclone purge "${OLD}${VERSION}" ${VERBOSE} --retries ${RETRIES} --retries-sleep ${RETRIES_SLEEP} $DRY2
+    $DRY nice rclone purge "${OLD}${VERSION}" \
+      ${VERBOSE} \
+      --retries ${RETRIES} \
+      --retries-sleep ${RETRIES_SLEEP} \
+      $DRY2
+
     status=$?
     if test $status -eq 0; then
       show_info "✅  Oldest version ${VERSION} purged from kDrive."
     else
-      show_info "❌  ERROR : A problem was encountered during the purge from kDrive."
+      show_info '❌  ERROR : A problem was encountered during the purge from kDrive.'
     fi
   else
     show_info "✅  Oldest version ${VERSION} not found on kDrive."
   fi
-  echo ""
+  echo ''
   printf '=%.0s' {1..100}
-  echo ""
+  echo ''
 }
 
 
@@ -264,11 +271,16 @@ function Purge-Oldest-Version {
 ###############################################################################################
 
 function Rename-Old-Versions {
-  show_info "🌀   Rename old versions on kDrive started."
+  show_info '🌀   Rename old versions on kDrive started.'
   while [ $VERSION -gt 1 ]; do
     (( OLDV=$VERSION-1 ))
     if rclone lsd "${OLD}${OLDV}" > /dev/null 2>&1; then
-      $DRY nice rclone move "${OLD}${OLDV}" "${OLD}${VERSION}" ${VERBOSE} --retries ${RETRIES} --retries-sleep ${RETRIES_SLEEP} $DRY2
+      $DRY nice rclone move "${OLD}${OLDV}" "${OLD}${VERSION}" \
+        ${VERBOSE} \
+        --retries ${RETRIES} \
+        --retries-sleep ${RETRIES_SLEEP} \
+        $DRY2
+
       status=$?
       if test $status -eq 0; then
         show_info "✅  Version ${OLDV} renamed to ${VERSION} on kDrive."
@@ -280,9 +292,9 @@ function Rename-Old-Versions {
     fi
     (( VERSION = $OLDV ))
   done
-  echo ""
+  echo ''
   printf '=%.0s' {1..100}
-  echo ""
+  echo ''
 }
 
 
@@ -291,18 +303,32 @@ function Rename-Old-Versions {
 ###############################################################################################
 
 function Send-to-kDrive {
-  show_info "🌀   Send to kDrive started."
-  $DRY nice rclone sync "${SOURCE}" "${DESTINATION}" --bwlimit ${SPEED_LIMIT} --fast-list --track-renames --track-renames-strategy size --check-first --delete-after --backup-dir "${OLD}1" ${VERBOSE} --skip-links --retries ${RETRIES} --retries-sleep ${RETRIES_SLEEP} $DRY2
+  show_info '🌀   Send to kDrive started.'
+  $DRY nice rclone sync "${SOURCE}" "${DESTINATION}" \
+    --bwlimit ${SPEED_LIMIT} \
+    --fast-list \
+    --track-renames \
+    --track-renames-strategy size \
+    --check-first \
+    --delete-after \
+    --backup-dir "${OLD}1" \
+    ${VERBOSE} \
+    --skip-links \
+    --transfers 1 \
+    --retries ${RETRIES} \
+    --retries-sleep ${RETRIES_SLEEP} \
+    $DRY2
+
   status=$?
   if test $status -eq 0; then
-    show_info "✅  Files are uploaded to kDrive."
+    show_info '✅  Files are uploaded to kDrive.'
   else
-    show_info "❌  ERROR : A problem was encountered during the upload to kDrive."
-    Send-Error-over-Email "❌  ERROR : A problem was encountered during the upload to kDrive."
+    show_info '❌  ERROR : A problem was encountered during the upload to kDrive.'
+    Send-Error-over-Email '❌  ERROR : A problem was encountered during the upload to kDrive.'
   fi
-  echo ""
+  echo ''
   printf '=%.0s' {1..100}
-  echo ""
+  echo ''
 }
 
 
@@ -332,6 +358,6 @@ RUN_TIME=$((END_TIME-START_TIME))
 RUN_TIME_H=$(eval "echo $(date -ud "@$RUN_TIME" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
 show_info "✅  Finished in $RUN_TIME_H."
-echo ""
+echo ''
 printf '=%.0s' {1..100}
-echo ""
+echo ''
