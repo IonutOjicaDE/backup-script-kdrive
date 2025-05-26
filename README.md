@@ -26,8 +26,8 @@ Configure the path of the folder to backup:
 
 Configure the destination folder on kdrive for the Backup and also for the old files:
 ```sh
-20 DESTINATION="kDrive:/Backup" # Folder on kDrive where to store backups
-21 OLD="kDrive:/Old"            # Folder on kDrive where to store old versions
+20 DESTINATION='kDrive:/Backup' # Folder on kDrive where to store backups
+21 OLD='kDrive:/Old'            # Folder on kDrive where to store old versions
 ```
 
 Configure how many backup versions to keep still on the cloud, before the files will be completely deleted by the script (these files may be still be available from kdrive backup and after another 60 days will be completelly deleted; please consult kdrive for the exact keeping period after the files are deleted):
@@ -38,9 +38,9 @@ Configure how many backup versions to keep still on the cloud, before the files 
 ## kDrive
 Enter your kdrive credentials:
 ```sh
-35 kd_user="" # Your Infomaniak's mail
-36 kd_pass="" # App's password : https://manager.infomaniak.com/v3/profile/application-password
-37 kd_folder="" # Exemple : "https://12345678.connect.kdrive.infomaniak.com" : https://www.infomaniak.com/en/support/faq/2409/connect-to-kdrive-via-webdav
+35 kd_user=''   # Your Infomaniak's mail
+36 kd_pass=''   # App's password : https://manager.infomaniak.com/v3/profile/application-password
+37 kd_folder='' # Exemple : 'https://12345678.connect.kdrive.infomaniak.com' : https://www.infomaniak.com/en/support/faq/2409/connect-to-kdrive-via-webdav
 ```
 
 ## Email account for notification
@@ -61,7 +61,7 @@ In case of errors, an email will be sent. Enter the email address that will rece
 # Configuration of `restore-script.sh`
 You can copy paste most of the configuration lines from the `backup-script.sh`.
 
-Please pay attention to enter the right SOURCE and the right DESTINATION. At the end, destination will mach source. Source will be intact. Destination will be altered, without extra notification or warning.
+Please pay attention to enter the right SOURCE and the right DESTINATION. At the end, destination will match source. Source will be intact. Destination will be altered, without extra notification or warning. All modified or deleted files will be moved to OLD folder.
 
 # Usage
 Clone the script on your machine:
