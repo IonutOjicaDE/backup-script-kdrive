@@ -26,8 +26,8 @@ Configurează calea folderului de backup:
 
 Configurează folderul de destinație pe kDrive pentru Backup și, de asemenea, pentru fișierele vechi:
 ```sh
-20 DESTINATION="kDrive:/Backup" # Folderul pe kDrive unde se vor stoca backup-urile
-21 OLD="kDrive:/Old"            # Folderul pe kDrive unde se vor stoca versiunile vechi
+20 DESTINATION='kDrive:/Backup' # Folderul pe kDrive unde se vor stoca backup-urile
+21 OLD='kDrive:/Old'            # Folderul pe kDrive unde se vor stoca versiunile vechi
 ```
 
 Configurează câte versiuni de backup să fie păstrate pe cloud, înainte ca fișierele să fie complet șterse de script (aceste fișiere pot fi încă disponibile din backup-ul kDrive și după alte 60 de zile vor fi complet șterse; te rugăm să consulți kDrive pentru perioada exactă de păstrare după ce fișierele sunt șterse):
@@ -38,9 +38,9 @@ Configurează câte versiuni de backup să fie păstrate pe cloud, înainte ca f
 ## kDrive
 Introdu credențialele tale kDrive:
 ```sh
-35 kd_user="" # Email-ul tău Infomaniak
-36 kd_pass="" # Parola aplicației: https://manager.infomaniak.com/v3/profile/application-password
-37 kd_folder="" # Exemplu: "https://12345678.connect.kdrive.infomaniak.com" : https://www.infomaniak.com/en/support/faq/2409/connect-to-kdrive-via-webdav
+35 kd_user=''   # Email-ul tău Infomaniak
+36 kd_pass=''   # Parola aplicației: https://manager.infomaniak.com/v3/profile/application-password
+37 kd_folder='' # Exemplu: "https://12345678.connect.kdrive.infomaniak.com" : https://www.infomaniak.com/en/support/faq/2409/connect-to-kdrive-via-webdav
 ```
 
 ## Cont email pentru notificări
@@ -61,7 +61,7 @@ Introdu credențialele tale kDrive:
 # Configurarea `restore-script.sh`
 Poți copia majoritatea liniilor de configurare din `backup-script.sh`.
 
-Atenție să introduci corect SOURCE și DESTINATION. La final, destinația va fi identică cu sursa. Sursa va rămâne intactă. Destinația va fi modificată, fără notificări sau avertismente suplimentare.
+Atenție să introduci corect SOURCE și DESTINATION. La final, destinația va fi identică cu sursa. Sursa va rămâne intactă. Destinația va fi modificată, fără notificări sau avertismente suplimentare. Toate fișierele modificate sau șterse vor fi mutate în dosarul OLD.
 
 # Utilizare
 Clonează scriptul pe sistemul tău:
