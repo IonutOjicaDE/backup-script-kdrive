@@ -18,6 +18,7 @@
 
 SOURCE="/srv/dev-disk-by-uuid-$(blkid -s UUID -o value /dev/sdX)/OMV" # Source folder to backup // replace /dev/sdX with your disk identifier
 DESTINATION='kDrive:/Backup' # Folder on kDrive where to store backups
+UPLOAD='Upload'              # Folder on kDrive where files can be directly uploaded and will be fetched to local source
 OLD='kDrive:/Old'            # Folder on kDrive where to store old versions
 VERBOSE='-v'                 # Add more v's for more verbosity: -v = info, -vv = debug
 VERSIONS=5                   # Number of backup versions to keep on cloud
@@ -299,6 +300,43 @@ function Rename-Old-Versions {
 
 
 ###############################################################################################
+#####                                 DOWNLOAD from UPLOAD                                #####
+###############################################################################################
+
+function Fetch-From-Upload {
+  local upload_cloud_path="${DESTINATION}/${UPLOAD}"
+  local upload_local_path="${SOURCE}/${UPLOAD}"
+
+  mkdir -p "$upload_local_path"
+
+  show_info "🌀  Checking for new files in Upload folder from kDrive."
+
+  $DRY nice rclone copy "$upload_cloud_path" "$upload_local_path" \
+    --bwlimit ${SPEED_LIMIT} \
+    --create-empty-src-dirs \
+    --fast-list \
+    ${VERBOSE} \
+    --skip-links \
+    --transfers 1 \
+    --retries ${RETRIES} \
+    --retries-sleep ${RETRIES_SLEEP} \
+    $DRY2
+
+  local status=$?
+  if test $status -eq 0; then
+    show_info "✅  Files from $upload_cloud_path successfully fetched to local folder."
+  else
+    show_info "⚠️  WARNING: Could not fetch all files from $upload_cloud_path folder."
+    Send-Error-over-Email "⚠️  WARNING: Could not fetch all files from $upload_cloud_path folder."
+    exit 1
+  fi
+  echo ''
+  printf '=%.0s' {1..100}
+  echo ''
+}
+
+
+###############################################################################################
 #####                                    SEND TO KDRIVE                                   #####
 ###############################################################################################
 
@@ -345,9 +383,9 @@ Check-Local-Source
 VERSION=$VERSIONS
 
 Purge-Oldest-Version
-
 Rename-Old-Versions
 
+Fetch-From-Upload
 Send-to-kDrive
 
 # Clean up lockfile
