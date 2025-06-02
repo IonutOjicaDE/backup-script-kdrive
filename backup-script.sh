@@ -18,8 +18,9 @@
 
 SOURCE="/srv/dev-disk-by-uuid-$(blkid -s UUID -o value /dev/sdX)/OMV" # Source folder to backup // replace /dev/sdX with your disk identifier
 DESTINATION='kDrive:/Backup' # Folder on kDrive where to store backups
-UPLOAD='Upload'              # Folder on kDrive where files can be directly uploaded and will be fetched to local source
 OLD='kDrive:/Old'            # Folder on kDrive where to store old versions
+DEST_UPLOAD="${DESTINATION}/Upload-directly-to-kDrive"  # Folder on kDrive where files can be directly uploaded and will be fetched to local source
+SOURCE_UPLOADED="${SOURCE}/Uploaded" # Local folder where files will be downloaded from kDrive Upload-directly-to-kDrive folder
 VERBOSE='-v'                 # Add more v's for more verbosity: -v = info, -vv = debug
 VERSIONS=5                   # Number of backup versions to keep on cloud
 LOG='/var/log/rclone.log'    # Log file
@@ -304,14 +305,11 @@ function Rename-Old-Versions {
 ###############################################################################################
 
 function Fetch-From-Upload {
-  local upload_cloud_path="${DESTINATION}/${UPLOAD}"
-  local upload_local_path="${SOURCE}/${UPLOAD}"
-
-  mkdir -p "$upload_local_path"
+  mkdir -p "${SOURCE_UPLOADED}"
 
   show_info "🌀  Checking for new files in Upload folder from kDrive."
 
-  $DRY nice rclone copy "$upload_cloud_path" "$upload_local_path" \
+  $DRY nice rclone copy "${DEST_UPLOAD}" "${SOURCE_UPLOADED}" \
     --bwlimit ${SPEED_LIMIT} \
     --create-empty-src-dirs \
     --fast-list \
@@ -324,10 +322,10 @@ function Fetch-From-Upload {
 
   local status=$?
   if test $status -eq 0; then
-    show_info "✅  Files from $upload_cloud_path successfully fetched to local folder."
+    show_info "✅  Files from ${DEST_UPLOAD} successfully fetched to local folder."
   else
-    show_info "⚠️  WARNING: Could not fetch all files from $upload_cloud_path folder."
-    Send-Error-over-Email "⚠️  WARNING: Could not fetch all files from $upload_cloud_path folder."
+    show_info "⚠️  WARNING: Could not fetch all files from ${DEST_UPLOAD} folder."
+    Send-Error-over-Email "⚠️  WARNING: Could not fetch all files from ${DEST_UPLOAD} folder."
     exit 1
   fi
   echo ''
